@@ -6,4 +6,5 @@ node_modules/*
 
 # Other json files
 package-lock.json
+package.json
 launch.json
