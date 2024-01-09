@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 books_edit = [["genesis", 50, 1533], ["exodus", 40, 1213], ["leviticus", 27, 859], ["numbers", 36, 1288], ["deuteronomy", 34, 959], ["joshua", 24, 658], ["judges", 21, 618],
@@ -53,6 +52,9 @@ def format_scrip(scripture):
     verse = ""
     if len(split_scripture) >= 5:
         return -1
+    if not split_scripture[1].isnumeric():
+        book_string = split_scripture[0] + " " + split_scripture[1]
+        split_scripture[0] = split_scripture[0] + " " + split_scripture[1]
     if len(split_scripture) >= 2:
         if len(split_scripture) == 4 or not split_scripture[1].strip("-").isnumeric():
             if split_scripture[0].isnumeric():
@@ -127,55 +129,6 @@ def get_guild_trans(guild_id):
         if guild_id in x[0]:
             translation = x[1]
     return translation
-
-
-def get_note(user_id, location):
-    with open("notes.json", "r") as file:
-        data = json.load(file)
-        try:
-            for d in data:
-                for key in d.keys():
-                    if key == str(user_id):
-                        for k in d[key]:
-                            for lo in k.keys():
-                                if lo == location:
-                                    return " __*Your note: \"" + k[location] + "\"*__ "
-            return " "
-        except:
-            return " "
-
-
-def add_note(user_id, location, note):
-    with open("notes.json", "r") as file:
-        data = json.load(file)
-    data = add_entry(user_id, location, data, note)
-    with open("notes.json", "w") as file:
-        json.dump(data, file)
-
-
-def add_entry(user_id, location, data, note):
-    new_data = data
-    index = 0
-    for d in data:
-        print(d)
-        for key in d.keys():
-            print(key)
-            if key == str(user_id):
-                print(new_data[index][key])
-                ind = 0
-                for k in d[key]:
-                    for lo in k.keys():
-                        if lo == location:
-                            del new_data[index][key][ind][lo]
-                            break
-                    ind += 1
-
-
-                new_data[index][key].append({location: note})
-                return new_data
-        index += 1
-    new_data.append({user_id: [{location: note}]})
-    return new_data
 
 
 def current_time():

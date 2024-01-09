@@ -10,7 +10,7 @@ API_KEY = "6b311ec73be90751e7528d34c0823ef9"
 # psa 1 - entire chapter
 
 
-def get_quote(scripture, guild_id, user_id=0, *args, **kwargs):
+def get_quote(scripture, guild_id, *args, **kwargs):
     translation = get_guild_trans(guild_id)
     url = "https://bible-api.com/{scripture}?translation={translation}".format(scripture=scripture, translation=translation)
     response = requests.get(url)
@@ -20,10 +20,11 @@ def get_quote(scripture, guild_id, user_id=0, *args, **kwargs):
         out = [""]
         index = 0
         for v in json_data['verses']:
-            if len(out[index] + "**" + str(v["verse"]) + ".** " + v["text"].replace("\n", " ").strip() + str(get_note(str(user_id), str(v["book_name"]) + " " + str(v["chapter"]) + ":" + str(v["verse"])))) > 4093:
+            #print(v)
+            if len(out[index] + "**" + str(v["verse"]) + ".** " + v["text"].replace("\n", " ").strip() + " ") > 4093:
                 index += 1
                 out.append("")
-            out[index] += "**" + str(v["verse"]) + ".** " + v["text"].replace("\n", " ").strip() + get_note(str(user_id), str(v["book_name"]) + " " + str(v["chapter"]) + ":" + str(v["verse"]))
+            out[index] += "**" + str(v["verse"]) + ".** " + v["text"].replace("\n", " ").strip() + " "
 
         return out
     except:
@@ -40,6 +41,7 @@ def fix_verses(scripture):
         chapter = verse[0]
 
         json_data = json.loads(requests.get("https://bible-api.com/{scripture}".format(scripture=chapter)).text)
+        #print(json_data)
         verse_amt = len(json_data["verses"])
         verses = verse[1].split("-")
         start = int(verses[0])

@@ -6,23 +6,19 @@ from format import *
 from datetime import datetime
 from daily import *
 from toc import get_content
+from dotenv import load_dotenv
 
-TOKEN = 'ODkyMTkyNDI2NDgyMDgxODYy.YVJU8g.9PKHhiNipGH0DNgdA2LoSll6DLU'
+load_dotenv()
+TOKEN = os.getenv('TOKEN')
 
-prefix = "!t"
-
-requests = ["Pray for our team"]
+prefix = "!"
 
 client = discord.Client()
 
 
-# Implement functionality
-
-
 @client.event
 async def on_ready():
-    await client.change_presence(
-        activity=discord.Activity(type=discord.ActivityType.watching, name='people type !bible'))
+    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='people type !bible'))
     print("[" + current_time() + "] Logged in as {0.user}".format(client))
     f_read = open("translations.txt", "r")
     for x_line in f_read:
@@ -44,10 +40,8 @@ async def on_message(message):
 
     try_again = " Please try again!"
 
-    if message.content.lower().startswith(prefix + 'bible ver') or message.content.lower().startswith(
-            prefix + 'bib ver'):
-        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(
-            message.guild.id) + "): " + message.content)
+    if message.content.lower().startswith(prefix + 'bible ver') or message.content.lower().startswith(prefix + 'bib ver'):
+        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(message.guild.id) + "): " + message.content)
         start_time = datetime.now().microsecond
         split_string = message.content.split(" ")
         if len(split_string) == 2:
@@ -58,8 +52,7 @@ async def on_message(message):
             version = split_string[2].lower()
             if version in translations:
                 format_trans(version, message.guild.id)
-                embed = discord.Embed(description="Successfully Changed Translation to **" + version.upper() + "**",
-                                      color=0x00ff00)
+                embed = discord.Embed(description="Successfully Changed Translation to **" + version.upper() + "**", color=0x00ff00)
                 embed.set_author(name="Settings", icon_url="https://i.imgur.com/VWP2TLc.png")
                 footer_string = "Set"
             elif version == "list":
@@ -85,12 +78,10 @@ async def on_message(message):
         embed.set_footer(text=footer_string + " by {name}".format(name=message.author.name),
                          icon_url=message.author.avatar_url)
         await message.channel.send(embed=embed)
-        print("[" + current_time() + "] Response in " + str(
-            abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
+        print("[" + current_time() + "] Response in " + str(abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
 
-    elif message.content.lower().startswith(prefix + 'bible daily'):
-        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(
-            message.guild.id) + "): " + message.content)
+    elif message.content.lower().startswith(prefix + 'bible daily') or message.content.lower().startswith(prefix + 'bib daily'):
+        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(message.guild.id) + "): " + message.content)
         start_time = datetime.now().microsecond
         location = format_scrip(get_daily())
         quote = get_quote(location, message.guild.id)
@@ -103,83 +94,10 @@ async def on_message(message):
         embed.set_footer(text="Requested by {name}".format(name=message.author.name),
                          icon_url=message.author.avatar_url)
         await message.channel.send(embed=embed)
-        print("[" + current_time() + "] Response in " + str(
-            abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
+        print("[" + current_time() + "] Response in " + str(abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
 
-    elif message.content.lower().startswith(prefix + "bib"):
-        str_message = message.content
-        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(
-            message.guild.id) + "): " + str_message)
-        start_time = datetime.now().microsecond
-
-        if " " in str_message:
-            embed = discord.Embed(timestamp=datetime.utcnow())
-            try:
-                scripture = format_scrip(str_message.split(" ", 1)[1])
-                print("[" + current_time() + "] Corrected: " + scripture)
-                if scripture == -1:
-                    embed = discord.Embed(title="Error", description="Invalid verse!" + try_again, color=0xff0000)
-                elif scripture == -2:
-                    embed = discord.Embed(title="Error", description="Invalid chapter!" + try_again, color=0xff0000)
-                else:
-                    quote = get_quote(scripture, message.guild.id)
-                    if quote == -3:
-                        embed = discord.Embed(title="Error", description="Invalid location of scripture!" + try_again,
-                                              color=0xff0000)
-                    else:
-                        new_quote = get_quote(scripture, message.guild.id, message.author.id)
-                        fixed_scripture = fix_verses(scripture)
-                        if fixed_scripture == -1:
-                            fixed_scripture = "Song of Songs"
-                        index = 0
-                        for section in new_quote:
-                            embed = discord.Embed(description=section, color=0x00ff00)
-                            if index == len(new_quote) - 1:
-                                embed = discord.Embed(description=section, color=0x00ff00, timestamp=datetime.utcnow())
-                                embed.set_footer(text="Requested by {name}".format(name=message.author.name),
-                                                 icon_url=message.author.avatar_url)
-                            if index == 0:
-                                translation = get_guild_trans(message.guild.id)
-                                embed.set_author(name=fixed_scripture + " [" + translation.upper() + "]",
-                                                 url=scripture_link(scripture),
-                                                 icon_url=book_icon(scripture))
-                            await message.channel.send(embed=embed)
-                            index += 1
-                        print("[" + current_time() + "] Response in " + str(
-                            abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
-                        return
-            except:
-                embed = discord.Embed(title="Error", description="Invalid location of scripture!" + try_again,
-                                      color=0xff0000)
-            embed.timestamp = datetime.utcnow()
-            embed.set_footer(text="Requested by {name}".format(name=message.author.name),
-                             icon_url=message.author.avatar_url)
-            await message.channel.send(embed=embed)
-            print("[" + current_time() + "] Response in " + str(
-                abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
-        else:
-            section = "There are a handful of ways to look up scripture using Bible (Discord bot).\n\n" \
-                      "You can specify the book as the name of the book or the number of the book. " \
-                      "You may even request to read a whole chapter by only mentioning the chapter or a specific " \
-                      "(set of) verses. \n\n__Here are some examples:__\n\n**!bib psa 23:1-6** - Psalms 23:1-6" \
-                      "\n**!bible 40 16** - Matthew 16:1-28 \n**!bible -66 -1 6** - Revelations 1:6" \
-                      "\n**!bib Genesis 4 10-14** - Genesis 4:10-14\n\n__Adjust Settings:__\n\n**!bible version list**" \
-                      " - List of translations available.\n**!bible version <prefix>** - Switch to a translation."
-            embed = discord.Embed(description=section, color=0x00ff00, timestamp=datetime.utcnow())
-            embed.set_thumbnail(url=client.user.avatar_url)
-            embed.set_footer(text="Requested by {name}".format(name=message.author.name),
-                             icon_url=message.author.avatar_url)
-            embed.set_author(name="How to Use Bible Discord Bot", icon_url="https://i.imgur.com/DA8lgY0.png")
-            await message.channel.send(embed=embed)
-            print("[" + current_time() + "] Response in " + str(
-                abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
-
-    # elif message.content.startswith(prefix + "verseoftheday"):
-    #    await message.channel.send(access())
-    elif message.content.lower().startswith(prefix + 'toc') or message.content.lower().startswith(
-            prefix + 'tableofcontent'):
-        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(
-            message.guild.id) + "): " + message.content)
+    elif message.content.lower().startswith(prefix + 'bib toc') or message.content.lower().startswith(prefix + 'bible toc') or message.content.lower().startswith(prefix + 'bible tableofcontent'):
+        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(message.guild.id) + "): " + message.content)
         start_time = datetime.now().microsecond
         if "simple" in message.content:
             await message.channel.send(embed=get_content(discord, message.author))
@@ -198,46 +116,77 @@ async def on_message(message):
                 s.append((str_index + start).title())
                 index += 1
             d = '```' + '\n'.join(s) + '```'
-            embed = discord.Embed(title='Bible - Table of Content', description=d, timestamp=datetime.utcnow(),
-                                  color=0x00ff00)
+            embed = discord.Embed(title='Bible - Table of Content', description=d, timestamp=datetime.utcnow(), color=0x00ff00)
             embed.set_footer(text="Requested by {name}".format(name=message.author.name),
                              icon_url=message.author.avatar_url)
             await message.channel.send(embed=embed)
-            print("[" + current_time() + "] Response in " + str(
-                abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
+            print("[" + current_time() + "] Response in " + str(abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
 
-    elif message.content.lower().startswith(prefix + 'addnote'):
-        split = message.content.split(" ", 1)[1].split("; ", 1)
-        scripture = format_scrip(split[0]).split("-", 1)[0]
-        msg = split[1]
-        add_note(message.author.id, scripture, msg)
-        await message.channel.send("added note \"" + msg + "\" to the location " + scripture)
+    elif message.content.lower().startswith(prefix + "bib"):
+        str_message = message.content
+        print("[" + current_time() + "] " + message.author.name + " @ " + message.guild.name + " (" + str(message.guild.id) + "): " + str_message)
+        start_time = datetime.now().microsecond
 
-    elif message.content.lower().startswith(prefix + 'seenote'):
-        split = message.content.split(" ", 1)
-        scripture = format_scrip(split[1]).split("-", 1)[0]
-        note = get_note(message.author.id, scripture)
-        await message.channel.send("note: \"" + str(note) + "\" at the location " + scripture)
+        if "help" in str_message:
+            str_message = "!bib"
 
-    elif message.content.lower().startswith(prefix + 'addrequest'):
-        author = message.author.name
-        requests.append(message.content + " by " + author)
-        await message.channel.send("Thank you for your request!")
+        if " " in str_message:
+            embed = discord.Embed(timestamp=datetime.utcnow())
+            try:
+                scripture = format_scrip(str_message.split(" ", 1)[1])
+                print("[" + current_time() + "] Corrected: " + scripture)
+                if scripture == -1:
+                    embed = discord.Embed(title="Error", description="Invalid verse!" + try_again, color=0xff0000)
+                elif scripture == -2:
+                    embed = discord.Embed(title="Error", description="Invalid chapter!" + try_again, color=0xff0000)
+                else:
+                    quote = get_quote(scripture, message.guild.id)
+                    if quote == -3:
+                        embed = discord.Embed(title="Error", description="Invalid location of scripture!" + try_again,
+                                              color=0xff0000)
+                    else:
+                        new_quote = get_quote(scripture, message.guild.id)
+                        fixed_scripture = fix_verses(scripture)
+                        if fixed_scripture == -1:
+                            fixed_scripture = "Song of Songs"
+                        index = 0
+                        for section in new_quote:
+                            embed = discord.Embed(description=section, color=0x00ff00)
+                            if index == len(new_quote) - 1:
+                                embed = discord.Embed(description=section, color=0x00ff00, timestamp=datetime.utcnow())
+                                embed.set_footer(text="Requested by {name}".format(name=message.author.name),
+                                                 icon_url=message.author.avatar_url)
+                            if index == 0:
+                                translation = get_guild_trans(message.guild.id)
+                                embed.set_author(name=fixed_scripture + " [" + translation.upper() + "]", url=scripture_link(scripture),
+                                                 icon_url=book_icon(scripture))
+                            await message.channel.send(embed=embed)
+                            index += 1
+                        print("[" + current_time() + "] Response in " + str(abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
+                        return
+            except:
+                embed = discord.Embed(title="Error", description="Invalid location of scripture!" + try_again, color=0xff0000)
+            embed.timestamp = datetime.utcnow()
+            embed.set_footer(text="Requested by {name}".format(name=message.author.name), icon_url=message.author.avatar_url)
+            await message.channel.send(embed=embed)
+            print("[" + current_time() + "] Response in " + str(abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
+        else:
+            section = "There are a handful of ways to look up scripture using Bible (Discord bot).\n\n" \
+                      "You can specify the book as the name of the book or the number of the book. " \
+                      "You may even request to read a whole chapter by only mentioning the chapter or a specific " \
+                      "(set of) verses. \n\n__Here are some examples:__\n\n**!bib psa 23:1-6** - Psalms 23:1-6" \
+                      "\n**!bible 40 16** - Matthew 16:1-28 \n**!bible -66 -1 6** - Revelations 1:6" \
+                      "\n**!bib Genesis 4 10-14** - Genesis 4:10-14\n\n__Adjust Settings:__\n\n**!bible version list**" \
+                      " - List of translations available.\n**!bible version <prefix>** - Switch to a translation."
+            embed = discord.Embed(description=section, color=0x00ff00, timestamp=datetime.utcnow())
+            embed.set_thumbnail(url=client.user.avatar_url)
+            embed.set_footer(text="Requested by {name}".format(name=message.author.name), icon_url=message.author.avatar_url)
+            embed.set_author(name="How to Use Bible Discord Bot", icon_url="https://i.imgur.com/DA8lgY0.png")
+            await message.channel.send(embed=embed)
+            print("[" + current_time() + "] Response in " + str(abs(round((datetime.now().microsecond - start_time) / 1000))) + "ms")
 
-    elif message.content.lower().startswith(prefix + 'seerequest'):
-        split = ""
-        counter = 1
-        for request in requests:
-            split = counter + ". " + split + request + "\r\n";
-            counter += 1
-        await message.channel.send("Current requests:\n\n" + split)
-
-    elif message.content.lower().startswith(prefix + 'answered'):
-        split = message.content.split(" ", 1)
-        counter = split[-1]
-        answer = requests.pop[counter]
-        await message.channel.send("Answered request: " + answer)
-
+    #elif message.content.startswith(prefix + "verseoftheday"):
+    #    await message.channel.send(access())
 
 # Run the client
 client.run(TOKEN)

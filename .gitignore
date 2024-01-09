@@ -1,0 +1,19 @@
+# Private config variables
+.env
+
+# Node modules
+node_modules/*
+
+# Other json files
+package-lock.json
+package.json
+launch.json
+
+# Other files
+.idea/
+__pycache__/
+venv/
+
+# Private server information
+translations.txt
+notes.json
